@@ -1,4 +1,4 @@
-# bottom-jl
+# bottom.jl
 An implementation of the humorous [Bottom encoding format](https://github.com/bottom-software-foundation/spec) in the [Julia](https://github.com/JuliaLang/julia) programming language.
 
 Script usage:
