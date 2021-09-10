@@ -44,20 +44,12 @@ function decode_bottom(input::String)
         error("The input string should end with the byte separator.")
     end
 
-    decoded_chars = Char[]
-    split_input = split(input, "👉👈")
-    sizehint!(decoded_chars, length(split_input) - 1)
+    decode_byte(encoded_byte::AbstractString) = Char(sum(count(char, encoded_byte) * emoji_to_value[char] for char in bottom_chars))
 
-    for encoded_byte in split_input[1:length(split_input) - 1]
-        char_code = 0
-        for char in bottom_chars
-            char_code += count(char, encoded_byte) * emoji_to_value[char]
-        end
-        push!(decoded_chars, Char(char_code))
-    end
-    
-    # An amusing one-liner version of the above for-loop. Saves no time whatsoever.
-    #output_chars = Char[Char(sum(count(char, encoded_byte) * emoji_to_value[char] for char in bottom_chars)) for encoded_byte in split_input[1:length(split_input) - 1]]
+    split_input = split(input, "👉👈")
+    input_to_decode = split_input[1:length(split_input) - 1]
+
+    decoded_chars = Char[decode_byte(encoded_byte) for encoded_byte in input_to_decode]
 
     return join(decoded_chars)
 end
