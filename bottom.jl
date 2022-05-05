@@ -1,37 +1,34 @@
-function encode_bottom(input::String)
-    encoded_chars = String[]
-    sizehint!(encoded_chars, length(input))
-    for char in input
-        current_string = ""
-        value = Int(char)
-        if value == 0
-            current_string = "❤️"
+function encode_char(input::Char)
+    current_string = ""
+    value = Int(input)
+    if iszero(value)
+        current_string = "❤️"
+    else
+        if value >= 200
+            copies, value = divrem(value, 200)
+            current_string *= "🫂" ^ copies
         end
-        while value != 0
-            if value >= 200
-                current_string *= "🫂"
-                value -= 200
-            elseif value >= 50
-                current_string *= "💖"
-                value -= 50
-            elseif value >= 10
-                current_string *= "✨"
-                value -= 10
-            elseif value >= 5
-                current_string *= "🥺"
-                value -= 5
-            elseif value >= 1
-                current_string *= ","
-                value -= 1
-            end
+        if value >= 50
+            copies, value = divrem(value, 50)
+            current_string *= "💖" ^ copies
         end
-        
-        push!(encoded_chars, current_string)
+        if value >= 10
+            copies, value = divrem(value, 10)
+            current_string *= "✨" ^ copies
+        end
+        if value >= 5
+            copies, value = divrem(value, 5)
+            current_string *= "🥺" ^ copies
+        end
+        if !iszero(value)
+            current_string *= "," ^ value
+        end
     end
 
-    return join(encoded_chars .* "👉👈")
+    return current_string * "👉👈"
 end
 
+encode_bottom(input::String) = join(map(encode_char, collect(input)))
 
 function decode_byte(encoded_byte::AbstractString, emoji_to_value::Dict{String,Int})
     # Decodes a string of bottom characters into the single character they represent
