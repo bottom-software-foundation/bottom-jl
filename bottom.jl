@@ -1,9 +1,9 @@
 function encode_char(input::Char)
-    current_string = ""
     value = Int(input)
-    if iszero(value)
+    if value == 0
         current_string = "❤️"
     else
+        current_string = ""
         if value >= 200
             copies, value = divrem(value, 200)
             current_string *= "🫂" ^ copies
@@ -20,7 +20,7 @@ function encode_char(input::Char)
             copies, value = divrem(value, 5)
             current_string *= "🥺" ^ copies
         end
-        if !iszero(value)
+        if value != 0
             current_string *= "," ^ value
         end
     end
@@ -28,21 +28,23 @@ function encode_char(input::Char)
     return current_string * "👉👈"
 end
 
-encode_bottom(input::String) = join(map(encode_char, collect(input)))
+encode_bottom(input::String) = input |> collect .|> encode_char |> join
 
-function decode_byte(encoded_byte::AbstractString, emoji_to_value::Dict{String,Int})
+function decode_byte(encoded_byte::SubString{String}, emoji_to_value::Dict{String, Int})
     # Decodes a string of bottom characters into the single character they represent
-
-    bottom_chars = emoji_to_value |> keys |> collect
-    return map(char -> count(char, encoded_byte) * emoji_to_value[char], bottom_chars) |> sum |> Char
+    total = 0
+    for key in keys(emoji_to_value)
+        total += count(key, encoded_byte) * emoji_to_value[key]
+    end
+    return Char(total)
 end
 
 function decode_bottom(input::String)
-    emoji_to_value = Dict{String,Int}("🫂" => 200, "💖" => 50, "✨" => 10, "🥺" => 5, "," => 1, "❤️" => 0)
+    emoji_to_value = Dict{String, Int}("🫂" => 200, "💖" => 50, "✨" => 10, "🥺" => 5, "," => 1, "❤️" => 0)
     byte_separator = "👉👈"
     all_bottom_chars = [emoji_to_value |> keys |> collect ; byte_separator]
 
-    if sum(map(char -> count(char, input) * length(char), all_bottom_chars)) ≠ length(input)
+    if sum([count(char, input) * length(char) for char in all_bottom_chars]) ≠ length(input)
         error("Input string contains a character not in the Bottom specification.")
     end
 
@@ -50,8 +52,8 @@ function decode_bottom(input::String)
         error("The input string should end with the byte separator.")
     end
 
-    input_to_decode = split(input, byte_separator)[1:end-1]
-    decoded_chars = decode_byte.(input_to_decode, Ref(emoji_to_value))
+    input_to_decode = @view split(input, byte_separator)[1:end-1]
+    decoded_chars = [decode_byte(encoded_char, emoji_to_value) for encoded_char in input_to_decode]
 
     return join(decoded_chars)
 end
